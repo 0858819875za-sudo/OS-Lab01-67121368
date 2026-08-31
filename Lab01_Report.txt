@@ -1,0 +1,18 @@
+======================================================
+COE67-222 Operating Systems - Lab 01 Report
+Name: [สรียา นาคาพิศ]
+Student ID: 67121368
+======================================================
+
+1. Hardware Baseline:
+- OS Version: Linux 6.8.0-1052-azure
+- Number of CPU Cores: 2 Cores
+- Total RAM: 7.76 GB
+
+2. Observation:
+During the CPU stress test (python stress_test.py), the Python script utilized 100% of only ONE available CPU core, while the other core remained mostly idle. This is because standard CPython executes code sequentially on a single thread due to the Global Interpreter Lock (GIL), preventing single-threaded scripts from spreading execution across multiple cores automatically.
+
+3. Analysis:
+When working with large datasets (such as 500,000 images in ML), knowing OS memory limits and CPU core counts is essential:
+1) Memory Limits: Prevents Out-Of-Memory (OOM) errors that cause the OS kernel to kill the training process when loading large batches into RAM.
+2) CPU Core Counts: Helps optimize multiprocessing and data-loader worker configurations to parallelize data preprocessing and loading efficiently across all available cores.
