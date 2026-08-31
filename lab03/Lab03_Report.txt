@@ -1,0 +1,20 @@
+======================================================
+COE67-222 Operating Systems - Lab 03 Report
+Name: [สรียา นาคาพิศ]
+Student ID: 67121368
+======================================================
+1. The Race Condition (Phase 2):
+In the `race_condition.py` script, the final weight value is lower than expected because updating `shared_weight` is a non-atomic operation consisting of three distinct steps: (1) Reading the current value into a temporary variable, (2) Incrementing the value, and (3) Writing the new value back to shared memory. 
+
+During execution, Thread 1 reads `shared_weight` and enters a brief sleep state. The OS Scheduler performs a Context Switch and hands execution time to Thread 2. Thread 2 reads the same initial value of `shared_weight`, increments it, and writes it back. When Thread 1 resumes, it uses its previously stored outdated temporary value to overwrite `shared_weight`. As a result, Thread 2's calculation is completely overwritten (Lost Update), causing the final value to fall significantly short of the expected count of 200.
+
+2. Mutex vs. Semaphore (Phase 3):
+- Specific Job of Mutex: The `mutex` (Mutual Exclusion lock) acts as a binary lock whose sole purpose is to protect the Critical Sections (updating `in_index` and `out_index`). It guarantees that only one thread (either Producer or Consumer) can access and modify the shared buffer array at any given instant, preventing data corruption.
+- Specific Job of Semaphores: The `empty` semaphore tracks the number of available empty slots in the buffer (initialized to 5), while the `full` semaphore tracks the number of filled slots containing data (initialized to 0). They manage thread synchronization by blocking the Producer when the buffer is full and blocking the Consumer when the buffer is empty.
+- Why Mutex Alone is Insufficient: A Mutex only provides single-thread access control (Lock/Unlock). It lacks counting capability and cannot track buffer space or signal state changes. Without Semaphores, a Mutex cannot pause the Producer when the buffer reaches capacity, nor can it notify a waiting Consumer when new data becomes available.
+
+3. Deadlock Awareness:
+If the acquisition order in the Producer function is swapped to `mutex.acquire()` followed by `empty.acquire()`:
+Suppose the buffer is completely full (empty count = 0). The Producer acquires the `mutex` first, locking access to the shared memory. Next, it calls `empty.acquire()` to wait for an empty slot. Since no slots are available, the Producer is put to sleep by the OS Scheduler while still holding the `mutex` lock. 
+
+When the Consumer attempts to execute, it calls `mutex.acquire()` to read data from the buffer and free up a slot. However, because the Producer holds the `mutex`, the Consumer becomes indefinitely blocked. As a result, the Producer waits for the Consumer to free a slot, and the Consumer waits for the Producer to release the Mutex. Both threads enter a permanent circular block, causing a system Deadlock.
