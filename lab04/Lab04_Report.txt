@@ -1,0 +1,18 @@
+======================================================
+COE67-222 Operating Systems - Lab 04 Report
+Name: [สรียา นาคาพิศ]
+Student ID: 67121368
+======================================================
+1. The Deadlock (Phase 2):
+Circular Wait occurred because Model A acquired GPU 0 and requested GPU 1, while Model B simultaneously acquired GPU 1 and requested GPU 0. This formed a circular dependency chain where Model A waits for Model B, and Model B waits for Model A, causing both threads to block indefinitely.
+
+2. The Solution (Phase 3):
+By forcing Model B to acquire GPU 0 before GPU 1, both threads follow a strict Lock Ordering (Resource Hierarchy). Model B cannot acquire GPU 1 first, eliminating the circular dependency. Whichever thread gets GPU 0 first will safely complete its work and release resources for the next thread.
+
+3. Starvation vs Deadlock (Phase 4):
+- Difference: In Deadlock, the entire system completely freezes (0 resource acquisitions for all threads). In Starvation, the system continues running, but the Polite_Model is indefinitely starved of resources while Greedy threads execute thousands of times.
+- Aging Concept: Aging prevents starvation by gradually increasing the priority of a waiting process over time. As Polite_Model waits longer, the OS elevates its priority until it outperforms greedy tasks and acquires CPU/resource access fairly.
+
+4. Deadlock Detection & Recovery (Phase 5):
+- Timeout Simulation: The `timeout` parameter acts as an OS Watchdog timer. If a thread fails to acquire a lock within the timeout period (2.0 seconds), the OS detects that a potential deadlock or stall has occurred.
+- Recovery Step: Model A performed "Preemption / Rollback" by voluntarily releasing GPU 0 (`gpu_0_lock.release()`). This unlocked the resource for Model B to proceed and finish execution, resolving the deadlock state automatically.
