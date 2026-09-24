@@ -1,0 +1,15 @@
+======================================================
+COE67-222 Operating Systems - Lab 09 Report
+Name: [Sareeya Nakapit]
+Student ID: [67121368]
+======================================================
+
+1. File System Permissions and Inodes (Phase 2):
+In Linux, how does the Operating System enforce file permissions (Read/Write/Execute) using Metadata and Inodes? What happens at the System Call level when a process attempts to write to a file with permission 0o400 (chmod 400)?
+Answer:
+The Linux kernel maintains filesystem metadata within data structures called Inodes. Each inode stores crucial metadata, including the file's ownership (UID/GID) and access permission bits (rwxrwxrwx). When a process issues an open() or write() system call, the kernel checks the effective User ID (UID) of the process against the permissions stored in the file's inode. If a process attempts to write to a file set to 0o400 (Read-Only for owner), the kernel intercepts the system call during access check, denies file descriptor allocation with write flags, and returns a PermissionError (EACCES) to user space, halting unauthorized modification before data reaches the storage driver.
+
+2. Model Weights Protection in AI Systems (Phase 3):
+Why is protecting Model Weights files using OS file permissions critical in production AI systems? How does applying Read-Only permission prevent malicious code or compromised worker processes from tampering with models?
+Answer:
+In production AI deployments, model weight files represent high-value intellectual property and critical runtime assets. If worker processes run with elevated write permissions, malicious code, compromised packages, or accidental process crashes could overwrite, corrupt, or alter model tensors, leading to service disruption or unsafe AI behavior (such as backdoor injections). Applying Read-Only permissions (e.g., chmod 400 or 444) locks file access at the OS kernel level, ensuring that even if an application process is compromised, the Operating System enforces immutable access rules and blocks any data modification attempts.
