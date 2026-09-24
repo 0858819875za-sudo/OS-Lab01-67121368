@@ -1,0 +1,19 @@
+======================================================
+COE67-222 Operating Systems - Lab 10 Report (Mini-Project)
+Name: [Sareeya Nakapit]
+Student ID: 67121368
+======================================================
+
+1. Capstone Summary (AI Cluster Integration across 4 Axes):
+Explain how the OS coordinates Memory Allocation, File System Security, Deadlock Avoidance, and CPU Scheduling Queue to run Training, Preprocessing, and Inference concurrently:
+Answer:
+To execute Training, Preprocessing, and Inference workloads simultaneously without system failure, the Operating System acts as the primary resource orchestrator across four critical axes:
+- Memory Allocation: Manages Virtual Memory and enforces limits on batch sizes to prevent RAM saturation, avoiding thrashing and Out-Of-Memory (OOM) process terminations.
+- File System Security: Uses Inode permissions (such as 0o400 Read-Only flags) to isolate model weights, preventing concurrent inference or worker processes from corrupting or overwriting sensitive files.
+- Deadlock Avoidance: Implements ordered resource lock acquisition strategies (e.g., locking GPU devices before storage volumes), eliminating circular waits among background training tasks and real-time inference tasks.
+- CPU Scheduling Queue: Utilizes priority-based Round Robin queues to process interactive inference requests with low latency while keeping heavy background training jobs running smoothly in time slices.
+
+2. Course Conclusion (OS Internals for AI/MLOps Engineers):
+How does understanding OS Internals elevate an engineer beyond a standard application programmer?
+Answer:
+Understanding Operating System internals transforms a developer into a high-performance AI/MLOps Engineer. Instead of treating hardware as an abstract black box, an OS-aware engineer can diagnose system bottlenecks, optimize GPU data pipelines, prevent memory-thrashing in large-scale model training, and secure production deployments against race conditions and unauthorized access, creating scalable and robust AI infrastructure.
