@@ -1,0 +1,26 @@
+======================================================
+COE67-222 Operating Systems - Lab 05 Report
+Name: [Sareeya Nakapit]
+Student ID: [67121368]
+======================================================
+
+1. Address Translation Math (Phase 3):
+Assume an OS has a PAGE_SIZE of 4096 bytes. 
+If an AI model requests data at Logical Address 10000, calculate:
+- The Page Number: 2
+- The Offset: 1808
+
+Calculation steps:
+- Page Number = Logical Address // PAGE_SIZE = 10000 // 4096 = 2
+- Offset = Logical Address % PAGE_SIZE = 10000 % 4096 = 1808
+
+2. Physical Memory Fragmentation:
+In our `page_table_sim.py`, Page 0 was stored in Frame 12, and Page 1 was in Frame 45. 
+Why does the OS store continuous logical data in scattered/fragmented physical frames instead of putting them right next to each other? What problem does this solve?
+Answer:
+The OS stores contiguous logical memory in non-contiguous physical frames to solve the External Fragmentation problem. In real systems, physical RAM becomes fragmented over time as processes allocate and free memory. Paging allows the OS to allocate physical memory to a process whenever a frame is available, without requiring a single contiguous block of physical RAM. The OS uses the Page Table to maintain the contiguous logical view for the program while dynamically mapping logical pages to scattered physical frames.
+
+3. The AI Context (mmap):
+In Phase 4, we mapped a 50MB file to memory, but the physical RAM usage did not increase significantly. Explain how the OS Virtual Memory and Page Table achieve this, and what actually happens at the OS level when index 25,000,000 is accessed.
+Answer:
+Memory-mapping (`mmap`) leverages Virtual Memory to create page table entries pointing directly to the file on disk without immediately loading its contents into physical RAM (lazy loading). When index 25,000,000 is accessed, the CPU detects that the required page is not currently present in physical RAM and triggers an OS Page Fault. The OS Kernel handles this fault by pausing the process execution, fetching only the specific page containing byte index 25,000,000 from disk into an available RAM frame, updating the Page Table mapping, and then resuming execution. This approach minimizes memory consumption and enables efficient handling of massive AI models.
