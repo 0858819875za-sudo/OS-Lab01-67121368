@@ -1,0 +1,36 @@
+======================================================
+COE67-222 Operating Systems - Lab 06 Report
+Name: [Sareeya Nakapit]
+Student ID: [67121368]
+======================================================
+
+1. FIFO vs LRU (Phase 2):
+In the `page_replacement.py` script, why did the LRU algorithm perform better (have fewer page faults) than the FIFO algorithm for the given reference string? Explain how LRU decides which page to evict.
+Answer:
+The LRU (Least Recently Used) algorithm outperformed FIFO (7 vs 9 page faults) because it leverages the Principle of Temporal Locality, which states that memory locations accessed recently are very likely to be accessed again in the near future. 
+
+LRU tracks the execution/access history of every memory page in RAM. When a page replacement is required due to a page fault, LRU identifies and evicts the page that has not been referenced for the longest duration, retaining pages that are actively in use. 
+
+In contrast, FIFO (First-In, First-Out) operates strictly on a queue based on the order of page arrival, ignoring page access patterns entirely. FIFO frequently evicts heavily reused pages simply because they entered RAM earlier, leading to recurring page faults (and occasionally suffering from Belady's Anomaly). In our simulation, because pages like Page 2 and Page 5 were referenced multiple times, LRU successfully retained them in physical memory, whereas FIFO continually evicted and re-loaded them.
+
+2. Understanding Thrashing (Phase 3):
+Based on your observation of `ai_thrashing.py`, define "Thrashing" in your own words. Why is the processing time significantly higher in Scenario 2?
+Answer:
+"Thrashing" is a pathological performance state in an Operating System where the system spends a vast majority of its computational resources handling Page Faults and swapping memory pages between physical RAM and secondary storage (Disk/Swap space), rather than executing actual application code.
+
+In Scenario 2 of `ai_thrashing.py`, the processing time was dramatically higher because of the immense difference in I/O access latency between physical memory (RAM) and disk storage. Physical RAM operates on nanosecond latency (\(10^{-9}\) seconds), whereas secondary storage (even high-speed NVMe SSDs or virtualized disk swap) operates on microsecond to millisecond latency (\(10^{-6}\) to \(10^{-3}\) seconds)—making disk I/O thousands of times slower. 
+
+When physical memory is fully depleted, the OS Kernel is continuously forced to pause the running Python process, write dirty memory pages to disk, and read missing pages back into RAM. This severe I/O bottleneck stalls CPU execution, resulting in massive performance degradation.
+
+3. AI Engineering Decision:
+If you are training an AI model and your system begins to thrash because the RAM is full, lowering the `batch_size` in your Python code is a common solution. How does lowering the `batch_size` help the Operating System resolve the Thrashing problem?
+Answer:
+Lowering the `batch_size` during model training directly reduces the process's "Working Set"—which is the set of memory pages actively referenced by the OS/CPU during a single training step.
+
+During deep learning workflows, physical memory must simultaneously store model parameters, optimizer states, intermediate layer activations, and input tensors for the current batch. When the `batch_size` is too large, the required working set exceeds the available physical RAM frames. This forces the OS Virtual Memory Manager into a thrashing loop as it constantly swaps activation tensors between RAM and disk.
+
+By reducing the `batch_size`:
+1. The physical memory footprint required for input tensors and intermediate activation maps shrinks proportionally.
+2. The reduced working set fits entirely within the available physical RAM frames allocated to the process.
+3. Page fault frequency drops to near zero, entirely eliminating disk swap I/O overhead.
+4. The CPU/GPU can process iterations sequentially without being blocked by OS Page Fault handling, resulting in vastly higher overall training throughput.
