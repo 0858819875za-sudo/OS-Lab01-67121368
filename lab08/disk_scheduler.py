@@ -1,47 +1,65 @@
 # disk_scheduler.py
-def simulate_fcfs_disk(requests, initial_head):
-    print(f"\n--- FCFS Disk Scheduling (Start Head: {initial_head}) ---")
-    current_head = initial_head
+def simulate_fcfs(requests, initial_position):
+    print("\n--- FCFS Disk Scheduling ---")
+    current_pos = initial_position
     total_head_movement = 0
+    path = [current_pos]
     
     for req in requests:
-        distance = abs(req - current_head)
-        total_head_movement += distance
-        print(f"Move from {current_head} to {req} (Seek Distance: {distance})")
-        current_head = req
+        movement = abs(current_pos - req)
+        total_head_movement += movement
+        current_pos = req
+        path.append(current_pos)
         
-    print(f">> Total Head Movement (FCFS): {total_head_movement} tracks")
-    return total_head_movement
+    print(f"Path: {' -> '.join(map(str, path))}")
+    print(f">> Total Head Movement (Seek Time): {total_head_movement} cylinders")
 
-def simulate_scan_disk(requests, initial_head, disk_size=200):
-    print(f"\n--- SCAN (Elevator) Disk Scheduling (Start Head: {initial_head}) ---")
+def simulate_scan(requests, initial_position, max_cylinder=199):
+    print("\n--- SCAN (Elevator) Disk Scheduling ---")
+    # Sort requests
+    sorted_requests = sorted(requests)
+    
+    # Split requests into two queues based on current position
+    # Assuming we are moving UP towards max_cylinder first
+    left = [req for req in sorted_requests if req < initial_position]
+    right = [req for req in sorted_requests if req >= initial_position]
+    
+    current_pos = initial_position
     total_head_movement = 0
-    current_head = initial_head
+    path = [current_pos]
     
-    left = [r for r in requests if r < initial_head]
-    right = [r for r in requests if r >= initial_head]
-    
-    left.sort(reverse=True)
-    right.sort()
-    
-    # Moving right towards end of disk first
-    sequence = right + [disk_size - 1] + left
-    
-    for req in sequence:
-        distance = abs(req - current_head)
-        total_head_movement += distance
-        print(f"Move from {current_head} to {req} (Seek Distance: {distance})")
-        current_head = req
+    # Move UP
+    for req in right:
+        total_head_movement += abs(current_pos - req)
+        current_pos = req
+        path.append(current_pos)
         
-    print(f">> Total Head Movement (SCAN): {total_head_movement} tracks")
-    return total_head_movement
+    # Go to the end of the disk (OS Elevator rule)
+    if current_pos != max_cylinder:
+        total_head_movement += abs(current_pos - max_cylinder)
+        current_pos = max_cylinder
+        path.append(current_pos)
+        
+    # Reverse direction and move DOWN
+    # Left requests must be reversed because we are moving backwards
+    for req in reversed(left):
+        total_head_movement += abs(current_pos - req)
+        current_pos = req
+        path.append(current_pos)
+        
+    print(f"Path: {' -> '.join(map(str, path))}")
+    print(f">> Total Head Movement (Seek Time): {total_head_movement} cylinders")
 
 def main():
+    # I/O requests for disk tracks
     io_requests = [98, 183, 37, 122, 14, 124, 65, 67]
-    start_track = 53
+    start_pos = 53
     
-    simulate_fcfs_disk(io_requests, start_track)
-    simulate_scan_disk(io_requests, start_track)
+    print(f"Initial Head Position: {start_pos}")
+    print(f"Incoming OS I/O Requests: {io_requests}")
+    
+    simulate_fcfs(io_requests, start_pos)
+    simulate_scan(io_requests, start_pos)
 
 if __name__ == "__main__":
     main()

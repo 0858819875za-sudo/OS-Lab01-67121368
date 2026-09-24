@@ -1,58 +1,62 @@
 # dataset_io_sim.py
-import time
 import os
+import time
 
-def simulate_small_files_io(num_files=1000):
-    start_time = time.time()
-    folder = "small_images"
-    os.makedirs(folder, exist_ok=True)
+def setup_test_files(num_files, file_size_bytes):
+    print("Setting up test environments... (This might take a few seconds)")
     
-    # Writing many small files (High Metadata & Seek Overhead)
+    # 1. Create directory with many small files
+    os.makedirs("raw_images_folder", exist_ok=True)
     for i in range(num_files):
-        with open(f"{folder}/img_{i}.bin", "wb") as f:
-            f.write(b"\x00" * 1024) # 1 KB small image
+        with open(f"raw_images_folder/img_{i}.bin", "wb") as f:
+            f.write(b'\x00' * file_size_bytes)
             
-    # Reading them back
-    for i in range(num_files):
-        with open(f"{folder}/img_{i}.bin", "rb") as f:
-            _ = f.read()
-            
-    # Cleanup
-    for i in range(num_files):
-        os.remove(f"{folder}/img_{i}.bin")
-    os.rmdir(folder)
-    
-    return time.time() - start_time
-
-def simulate_chunked_file_io(num_files=1000):
-    start_time = time.time()
-    archive_file = "dataset_archive.bin"
-    
-    # Writing one big monolithic/chunked file (Sequential I/O)
-    with open(archive_file, "wb") as f:
-        for _ in range(num_files):
-            f.write(b"\x00" * 1024)
-            
-    # Reading back sequentially
-    with open(archive_file, "rb") as f:
-        _ = f.read()
+    # 2. Create one large continuous dataset file (TFRecord style)
+    with open("packed_dataset.tfrecord", "wb") as f:
+        f.write(b'\x00' * (num_files * file_size_bytes))
         
-    os.remove(archive_file)
-    return time.time() - start_time
+    print("Setup complete.\n")
+
+def test_random_small_files(num_files):
+    print(f"Test 1: Reading {num_files} separate small files (Raw Images)")
+    start_time = time.time()
+    
+    for i in range(num_files):
+        # High OS Overhead: Open -> Read -> Close (Repeated 1000 times)
+        with open(f"raw_images_folder/img_{i}.bin", "rb") as f:
+            data = f.read()
+            
+    elapsed = time.time() - start_time
+    print(f"-> Time Taken: {elapsed:.4f} seconds")
+
+def test_sequential_large_file(num_files, file_size_bytes):
+    print("\nTest 2: Reading 1 large packed file (TFRecord format)")
+    start_time = time.time()
+    
+    # Low OS Overhead: Open once -> Read sequentially in chunks -> Close once
+    with open("packed_dataset.tfrecord", "rb") as f:
+        for i in range(num_files):
+            data = f.read(file_size_bytes)
+            
+    elapsed = time.time() - start_time
+    print(f"-> Time Taken: {elapsed:.4f} seconds")
+
+def cleanup(num_files):
+    for i in range(num_files):
+        os.remove(f"raw_images_folder/img_{i}.bin")
+    os.rmdir("raw_images_folder")
+    os.remove("packed_dataset.tfrecord")
 
 def main():
-    print("--- Simulating Dataset Loading Speed (1,000 Samples) ---")
+    NUM_FILES = 1000
+    FILE_SIZE = 4096 # 4KB per file
     
-    print("\n1. Scenario A: Loading thousands of individual small files...")
-    small_files_time = simulate_small_files_io()
-    print(f"   -> Processing Time: {small_files_time:.4f} seconds")
+    setup_test_files(NUM_FILES, FILE_SIZE)
     
-    print("\n2. Scenario B: Loading single aggregated dataset archive...")
-    chunked_time = simulate_chunked_file_io()
-    print(f"   -> Processing Time: {chunked_time:.4f} seconds")
+    test_random_small_files(NUM_FILES)
+    test_sequential_large_file(NUM_FILES, FILE_SIZE)
     
-    speedup = small_files_time / chunked_time
-    print(f"\n>>> SYSTEM IMPACT: Aggregated File I/O is {speedup:.1f} TIMES faster!")
+    cleanup(NUM_FILES)
 
 if __name__ == "__main__":
     main()
