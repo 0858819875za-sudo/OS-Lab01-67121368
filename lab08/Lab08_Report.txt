@@ -1,0 +1,20 @@
+======================================================
+COE67-222 Operating Systems - Lab 08 Report
+Name: [Sareeya Nakapit]
+Student ID: [67121368]
+======================================================
+
+1. Disk Scheduling (Phase 2):
+In disk_scheduler.py, compare the total head movement of FCFS vs SCAN. Why does SCAN reduce head movement compared to FCFS?
+Answer:
+SCAN (Elevator Algorithm) significantly reduces total head movement compared to FCFS because it services disk requests systematically in one directional sweep across tracks before reversing direction. FCFS blindly services requests in order of arrival, causing erratic back-and-forth head seeks across the disk platters. SCAN minimizes random seek latency and improves overall disk throughput by optimizing physical head movement patterns.
+
+2. I/O Bottlenecks (Phase 3):
+Why is loading 1,000 individual small image files significantly slower than reading 1 large combined file of the same total size? Explain in terms of OS File System Metadata, Seek Overhead, and Directory Overhead.
+Answer:
+Loading 1,000 individual small files creates a severe I/O bottleneck due to filesystem metadata overhead and random disk seeking. For every individual file, the OS Kernel must perform file table lookups, traverse directory entry trees, allocate file descriptors, and modify inode metadata (like access timestamps). Additionally, reading separate files forces the storage controller to perform repeated non-contiguous random read operations. Conversely, reading 1 large aggregated file allows the OS to leverage high-bandwidth sequential I/O with minimal metadata operations and a single contiguous read request.
+
+3. AI Systems Context (Dataset Formats):
+Modern machine learning frameworks encourage using formats like TFRecord, WebDataset, or HDF5 instead of saving raw JPEG/PNG images separately in folders. Based on this lab, why is this file-structure design essential for GPU utilization during AI training?
+Answer:
+In AI training pipelines, GPUs perform matrix operations at extremely high speeds. If a dataset consists of millions of individual small files, the storage drive becomes I/O-bound due to file system metadata lookups and random seeks, leaving the GPU idle while waiting for data (GPU Starvation). Aggregating datasets into unified binary container formats (like TFRecord, WebDataset, or HDF5) enables continuous sequential streaming and prefetching directly into RAM/VRAM. This maximizes disk I/O throughput and ensures GPUs remain saturated with data at near 100% compute utilization.
