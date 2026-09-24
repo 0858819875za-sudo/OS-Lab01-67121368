@@ -1,0 +1,27 @@
+======================================================
+COE67-222 Operating Systems - Lab 07 Report
+Name: [Sareeya Nakapit]
+Student ID: [67121368]
+======================================================
+
+1. The Convoy Effect (Phase 2):
+In your FCFS execution output, how did the execution of Task_1 (Heavy Train) impact Task_2 and Task_3? Define the "Convoy Effect" and explain why FCFS is non-ideal for mixed workloads (interactive + batch).
+Answer:
+In FCFS scheduling, Task_1 (a CPU-heavy batch process requiring 20ms) arrived first at time 0 and occupied the CPU continuously. This forced Task_2 and Task_3 (short interactive tasks requiring only 2ms each) to wait in the queue for 19ms and 18ms respectively, despite arriving almost immediately at time 1 and 2. 
+This phenomenon is defined as the "Convoy Effect," where multiple short processes are blocked behind one long CPU-bound process, resulting in a high average waiting time (13.00 ms). FCFS is non-ideal for mixed workloads because interactive or real-time tasks suffer extreme execution delays, ruining system responsiveness simply due to arrival order.
+
+2. Time Quantum Tuning in Round Robin (Phase 3):
+How does changing the Time Quantum size in Round Robin affect CPU scheduling performance?
+- What happens if the Time Quantum is extremely LARGE (e.g., Quantum = 1000ms)?
+- What happens if the Time Quantum is extremely SMALL (e.g., Quantum = 0.001ms)?
+Answer:
+The Time Quantum directly controls the trade-off between scheduling fairness and system throughput:
+- Extremely LARGE Time Quantum: If the quantum exceeds the maximum burst time of all active processes, Round Robin degrades directly into FCFS (First-Come, First-Served). Short processes no longer preempt long ones, restoring the Convoy Effect and increasing response times.
+- Extremely SMALL Time Quantum: While short processes achieve high responsiveness, the frequency of CPU Context Switching increases exponentially. The CPU spends a major fraction of its clock cycles saving and restoring process registers, updating PCBs, and flushing CPU caches rather than executing program instructions, causing severe throughput loss.
+
+3. AI Systems Context (LLM Serving):
+In modern Large Language Model (LLM) serving frameworks (like vLLM), requests are processed token-by-token. How does "Continuous Batching" or iteration-level Round Robin scheduling solve fairness problems when one user submits a prompt requesting 1,000 tokens while another user submits a prompt requesting 5 tokens?
+Answer:
+Traditional request-level batching processes prompts using FCFS, forcing short requests to wait until long text generations complete entirely (Convoy Effect). 
+
+Continuous Batching applies iteration-level scheduling analogous to Round Robin. Instead of processing full requests to completion, the inference engine executes one token-generation pass per active request in time slices. When a short request completes its 5 tokens, it immediately leaves the batch and returns the response to the user, freeing GPU context memory. Meanwhile, long requests (1,000 tokens) continue generating in subsequent iterations without holding short requests hostage. This minimizes Time-To-First-Token (TTFT) and ensures scheduling fairness across all users.
